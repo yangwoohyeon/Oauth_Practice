@@ -36,4 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 
-echo "src/main/resources/application.yml" >> .gitignore
+src/main/resources/application.yml
