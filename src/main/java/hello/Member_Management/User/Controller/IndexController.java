@@ -4,10 +4,14 @@ package hello.Member_Management.User.Controller;
 import hello.Member_Management.User.Entity.User;
 import hello.Member_Management.User.PrincipalDetails;
 import hello.Member_Management.User.Repository.UserRepository;
+import hello.Member_Management.User.Service.UserService;
+import hello.Member_Management.User.UserCreateForm;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -17,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class IndexController {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     @GetMapping({"","/"})
     public String index(){
@@ -46,19 +50,22 @@ public class IndexController {
     }
 
     @GetMapping("/joinForm") //회원가입 폼
-    public String joinForm() {
+    public String joinForm(Model model) {
+        model.addAttribute("userCreateForm",new UserCreateForm()); //객체 생성후 모델에 담아준다.
         return "joinForm";
     }
 
-    @PostMapping("/join") //회원가입
-    public String join(User user) {
-        System.out.println("user = "+user);
-        user.setRole("ROLE_USER");
-        String rawPassword = user.getPassword();
-        String encPassword = passwordEncoder.encode(rawPassword); // 입력받은 평문 비밀번호 인코딩
-        user.setPassword(encPassword);
-        userRepository.save(user);
-        return "redirect:/loginForm";
+    @PostMapping("/joinForm") //회원가입
+    public String join(@Valid UserCreateForm userCreateForm, BindingResult bindingResult) {
+      if(bindingResult.hasErrors()){
+          return "joinForm";
+      }
+      if(!userCreateForm.getPassword1().equals(userCreateForm.getPassword2())){
+          bindingResult.rejectValue("passwerd2","passwordInCorrect","2개의 패스워드가 일치하지 않습니다.");
+          return "joinForm";
+      }
+      userService.registraion(userCreateForm.getUsername(),userCreateForm.getPassword1(),userCreateForm.getEmail());
+      return "redirect:/";
     }
 
 }
