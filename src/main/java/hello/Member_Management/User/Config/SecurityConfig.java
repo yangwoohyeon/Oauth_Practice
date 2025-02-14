@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -12,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public BCryptPasswordEncoder encodePwd() {
+    public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
@@ -24,6 +25,7 @@ public class SecurityConfig {
                 .requestMatchers("/user/**").authenticated() // 로그인 필요
                 .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN") // MANAGER와 ADMIN만 허용
                 .requestMatchers("/admin/**").hasRole("ADMIN") // ADMIN만 허용
+                .requestMatchers("joinForm").permitAll()
                 .anyRequest().permitAll() // 그 외 요청은 허용
         );
 
