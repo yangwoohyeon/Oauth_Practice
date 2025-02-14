@@ -1,4 +1,4 @@
-package hello.Member_Management.User;
+package hello.Member_Management.User.UserInfo;
 
 public interface OAuth2UserInfo {
 
