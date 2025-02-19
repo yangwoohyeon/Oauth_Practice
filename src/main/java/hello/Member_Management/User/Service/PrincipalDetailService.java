@@ -23,6 +23,10 @@ public class PrincipalDetailService implements UserDetailsService {
         if(userEntity != null){
             return new PrincipalDetails(userEntity);
         }
+        else if (userEntity == null) {
+            System.out.println("❌ DB에서 사용자를 찾을 수 없습니다. username: " + username);
+            throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
+        }
         return null;
     }
 }

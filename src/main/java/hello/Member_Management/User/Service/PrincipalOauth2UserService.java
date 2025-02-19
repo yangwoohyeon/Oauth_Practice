@@ -2,19 +2,27 @@ package hello.Member_Management.User.Service;
 
 import hello.Member_Management.User.*;
 import hello.Member_Management.User.Entity.User;
+import hello.Member_Management.User.Jwt.JwtTokenProvider;
 import hello.Member_Management.User.Repository.UserRepository;
 import hello.Member_Management.User.UserInfo.GoogleUserInfo;
 import hello.Member_Management.User.UserInfo.KakaoUserInfo;
 import hello.Member_Management.User.UserInfo.NaverUserInfo;
 import hello.Member_Management.User.UserInfo.OAuth2UserInfo;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.io.IOException;
 import java.util.Map;
 
 
@@ -22,21 +30,22 @@ import java.util.Map;
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private PasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     // 구글로부터 받은 userRequest 데이터에 대한 후처리되는 함수
     // 함수 종료시 @AuthenticationPrincipal 어노테이션이 만들어진다.
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        System.out.println("getClientRegistration = " + userRequest.getClientRegistration()); // registrationId로 어떤 OAuth로 로그인 했는지 확인 가능
+        System.out.println("getClientRegistration = " + userRequest.getClientRegistration());
         System.out.println("getAccessToken = " + userRequest.getAccessToken().getTokenValue());
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        // 구글로그인 버튼 클릭 -> 구글로그인창 -> 로그인을 완료 -> code를 리턴(OAuth2-Client 라이브러리) -> AccessToken 요청
-        // userRequest 정보 -> 회원 프로필 받아야함(loadUser함수 호출) -> 구글로부터 회원프로필 받아준다.
         System.out.println("getAttributes = " + oAuth2User.getAttributes());
 
         OAuth2UserInfo oAuth2UserInfo = null;
@@ -45,17 +54,17 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
         } else if(userRequest.getClientRegistration().getRegistrationId().equals("naver")){
             System.out.println("네이버 로그인 요청");
-            oAuth2UserInfo = new NaverUserInfo((Map)oAuth2User.getAttributes().get("response"));
-        }else if(userRequest.getClientRegistration().getRegistrationId().equals("kakao")){
+            oAuth2UserInfo = new NaverUserInfo((Map) oAuth2User.getAttributes().get("response"));
+        } else if(userRequest.getClientRegistration().getRegistrationId().equals("kakao")){
             System.out.println("카카오 로그인 요청");
             oAuth2UserInfo = new KakaoUserInfo(oAuth2User.getAttributes());
         } else {
             System.out.println("지원하지 않는 로그인 방식입니다!");
         }
 
-        String provider = oAuth2UserInfo.getProvider(); // google
+        String provider = oAuth2UserInfo.getProvider();
         String providerId = oAuth2UserInfo.getProviderId();
-        String username = provider + "_" + providerId; // google_10021320120
+        String username = provider + "_" + providerId;
         String password = bCryptPasswordEncoder.encode("겟인데어");
         String email = oAuth2UserInfo.getEmail();
         String role = "ROLE_USER";
@@ -63,7 +72,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         User userEntity = userRepository.findByUsername(username);
 
         if (userEntity == null) {
-            System.out.println("구글 로그인이 최초입니다.");
+            System.out.println("로그인이 최초입니다.");
             userEntity = User.builder()
                     .username(username)
                     .password(password)
@@ -74,12 +83,22 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
                     .build();
             userRepository.save(userEntity);
         } else {
-            System.out.println("구글 로그인을 이미 한적이 있습니다. 당신은 자동회원가입이 되어 있습니다.");
+            System.out.println("이미 등록된 사용자입니다.");
         }
 
-        // 회원 가입을 강제로 진행해볼 예정
-        return new PrincipalDetails(userEntity, oAuth2User.getAttributes());
+
+        // ✅ PrincipalDetails 생성
+        PrincipalDetails principalDetails = new PrincipalDetails(userEntity, oAuth2User.getAttributes());
+
+        // ✅ SecurityContext에 인증 정보 강제 등록
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(principalDetails, null, principalDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return principalDetails;
+
     }
+
 
 
 }
