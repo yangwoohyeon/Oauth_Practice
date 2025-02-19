@@ -2,13 +2,18 @@ package hello.Member_Management.User.Controller;
 
 
 import hello.Member_Management.User.Entity.User;
+import hello.Member_Management.User.Jwt.JwtTokenProvider;
 import hello.Member_Management.User.PrincipalDetails;
 import hello.Member_Management.User.Repository.UserRepository;
 import hello.Member_Management.User.Service.UserService;
 import hello.Member_Management.User.UserCreateForm;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,12 +21,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @RequiredArgsConstructor
 public class IndexController {
 
     private final UserRepository userRepository;
     private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
+
 
     @GetMapping({"","/"})
     public String index(){
@@ -68,4 +78,6 @@ public class IndexController {
       return "redirect:/";
     }
 
+
 }
+
