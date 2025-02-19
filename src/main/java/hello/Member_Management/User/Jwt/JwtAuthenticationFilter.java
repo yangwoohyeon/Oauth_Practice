@@ -5,9 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,28 +32,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
         System.out.println("필터 실행됨. 추출된 토큰: " + token);
 
+        // ✅ 이미 인증된 사용자인지 확인
+        Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
+        if (existingAuth != null && existingAuth.isAuthenticated()) {
+            System.out.println("이미 인증된 사용자입니다: " + existingAuth.getName());
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
             String username = jwtTokenProvider.getUserPk(token);
             System.out.println("username = " + username);
 
-            // ✅ UserDetails 조회
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            // ✅ null 체크
-            if (userDetails != null) {
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+                if (userDetails != null) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                System.out.println("✅ SecurityContext에 인증 정보 저장 완료");
-            } else {
-                System.out.println("❌ 사용자 정보를 찾을 수 없습니다. username: " + username);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    System.out.println("✅ SecurityContext에 인증 정보 저장 완료");
+                } else {
+                    System.out.println("❌ 사용자 정보를 찾을 수 없습니다. username: " + username);
+                    clearTokenCookie(response); // ✅ 쿠키 초기화
+                }
+            } catch (UsernameNotFoundException e) {
+                System.out.println("❌ 사용자 조회 실패: " + e.getMessage());
+                clearTokenCookie(response); // ✅ 쿠키 초기화
             }
         } else {
-            System.out.println("❌ 토큰 없음 또는 유효하지 않음");
+            clearTokenCookie(response); // ✅ 쿠키 초기화
         }
 
         filterChain.doFilter(request, response);
+    }
+
+
+    // ✅ 쿠키 삭제 메서드
+    private void clearTokenCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("accessToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);  // 쿠키 삭제
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
 
 
