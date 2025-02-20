@@ -48,6 +48,12 @@ public class SecurityConfig {
                         .requestMatchers("/", "/loginForm","joinForm").permitAll()
                         .anyRequest().authenticated()
                 )
+                .formLogin(form -> form
+                        .loginPage("/loginForm")
+                        .loginProcessingUrl("/login") // ✅ POST 요청 URL
+                        .successHandler(customOAuth2SuccessHandler)  // ✅ 커스텀 SuccessHandler 등록
+                        .failureUrl("/loginForm?error=true")
+                )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/loginForm")
                         .successHandler(customOAuth2SuccessHandler)  // ✅ 커스텀 SuccessHandler 등록
