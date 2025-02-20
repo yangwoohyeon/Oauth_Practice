@@ -74,7 +74,7 @@ public class IndexController {
           bindingResult.rejectValue("passwerd2","passwordInCorrect","2개의 패스워드가 일치하지 않습니다.");
           return "joinForm";
       }
-      userService.registraion(userCreateForm.getUsername(),userCreateForm.getPassword1(),userCreateForm.getEmail());
+      userService.registraion(userCreateForm.getUsername(),userCreateForm.getPassword1(),userCreateForm.getEmail(),userCreateForm.getId());
       return "redirect:/";
     }
 
