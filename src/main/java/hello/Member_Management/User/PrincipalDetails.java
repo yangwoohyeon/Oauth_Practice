@@ -50,7 +50,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return user.getUserId();
     }
 
     @Override
@@ -75,8 +75,9 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getName() {
-        return null;
+        return user.getName(); // ✅ DB에 저장된 이름 반환
     }
+
 
     @Override
     public Map<String, Object> getAttributes() {

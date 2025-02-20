@@ -67,16 +67,18 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
         String username = provider + "_" + providerId;
         String password = bCryptPasswordEncoder.encode("겟인데어");
         String email = oAuth2UserInfo.getEmail();
+        String name = oAuth2UserInfo.getName(); // ✅ 사용자 이름 가져오기
         String role = "ROLE_USER";
 
-        User userEntity = userRepository.findByUsername(username);
+        User userEntity = userRepository.findByUserId(username);
 
         if (userEntity == null) {
             System.out.println("로그인이 최초입니다.");
             userEntity = User.builder()
-                    .username(username)
+                    .userId(username)
                     .password(password)
                     .email(email)
+                    .name(name) // ✅ 사용자 이름 저장
                     .role(role)
                     .provider(provider)
                     .providerId(providerId)
