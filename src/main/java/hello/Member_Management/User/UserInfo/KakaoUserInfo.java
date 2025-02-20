@@ -29,6 +29,9 @@ public class KakaoUserInfo implements OAuth2UserInfo{
 
     @Override
     public String getName() {
-        return (String) attributes.get("name");
+        LinkedHashMap<String, Object> accountMap = (LinkedHashMap<String, Object>) attributes.get("kakao_account");
+        LinkedHashMap<String, Object> profileMap = (LinkedHashMap<String, Object>) accountMap.get("profile");
+        return (String) profileMap.get("nickname");
     }
+
 }
