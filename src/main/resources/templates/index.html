@@ -12,7 +12,7 @@
 
     <!-- ✅ 로그인된 사용자 메시지 -->
     <div sec:authorize="isAuthenticated()">
-        <h3>안녕하세요, <span sec:authentication="name"></span>님!</h3>
+        <h3>안녕하세요, <span sec:authentication="principal.name"></span>님!</h3>
         <a th:href="@{/logout}" class="btn btn-danger btn-lg mt-3">로그아웃</a>
     </div>
 
