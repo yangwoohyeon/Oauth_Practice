@@ -15,9 +15,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User registraion(String username, String password, String email){
+    public User registraion(String username, String password, String email,String id){
         User user = new User();
-        user.setUsername(username);
+        user.setUserId(id);
+        user.setName(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setRole("ROLE_USER");
