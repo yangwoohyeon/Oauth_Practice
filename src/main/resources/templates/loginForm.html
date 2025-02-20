@@ -3,29 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <title>로그인 페이지</title>
+    <style>
+        /* 전체 페이지 정렬 */
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 로그인 폼 스타일 */
+        .login-form {
+            margin-top: 50px;
+        }
+
+        .login-form input {
+            margin: 5px;
+            padding: 10px;
+            width: 200px;
+        }
+
+        .login-form button {
+            padding: 10px 20px;
+        }
+
+        /* 소셜 로그인 버튼 스타일 */
+        .social-login {
+            display: flex;
+            flex-direction: column; /* ✅ 세로 정렬 */
+            align-items: center; /* ✅ 가운데 정렬 */
+            margin-top: 30px;
+            gap: 10px; /* ✅ 버튼 간격 */
+        }
+
+        .login-btn {
+            width: 200px;
+            height: 50px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* 이미지 아이콘이 버튼에 꽉 차게 */
+        .login-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 링크 스타일 */
+        a {
+            text-decoration: none;
+            color: #6A1B9A;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
     <script>
         function kakaoLogin() {
             window.location.href = "/oauth2/authorization/kakao";
         }
+
+        function naverLogin() {
+            window.location.href = "/oauth2/authorization/naver";
+        }
+
+        function googleLogin() {
+            window.location.href = "/oauth2/authorization/google";
+        }
     </script>
 </head>
 <body>
+
 <h1>로그인 페이지</h1>
 <hr/>
-<form action="/login" method="post">
-    <input type="text" name="username", placeholder="id"/><br/>
-    <input type="password" name="password", placeholder="Password"/><br/>
-    <button>로그인</button>
-</form>
-<a href="/oauth2/authorization/google">구글 로그인</a>
-<a href="/oauth2/authorization/naver">네이버 로그인</a>
-<!-- ✅ 카카오 로그인 버튼 변경 -->
-<div class="kakao-login">
-    <button onclick="kakaoLogin()">
-        <img src="https://k.kakaocdn.net/14/dn/btroDszwNrM/I6efHub1SN5KCJqLm1Ovx1/o.jpg"
-             width="222" alt="카카오 로그인 버튼"/>
-    </button>
+
+<!-- ✅ 일반 로그인 폼 -->
+<div class="login-form">
+    <form action="/login" method="post">
+        <input type="text" name="username" placeholder="아이디"/><br/>
+        <input type="password" name="password" placeholder="비밀번호"/><br/>
+        <button type="submit">로그인</button>
+    </form>
+
+    <a href="/joinForm">회원가입을 아직 하지 않으셨나요?</a>
 </div>
-<a href="/joinForm">회원가입을 아직 하지 않으셨나요?</a>
+
+<!-- ✅ 소셜 로그인 버튼들 -->
+<div class="social-login">
+
+    <!-- 구글 로그인 -->
+    <button onclick="googleLogin()" class="login-btn">
+        <img src="/images/google_button.png" alt="구글 로그인">
+    </button>
+
+    <!-- 카카오 로그인 -->
+    <button onclick="kakaoLogin()" class="login-btn">
+        <img src="/images/kakao_login_large_narrow.png" alt="카카오 로그인">
+    </button>
+
+    <!-- 네이버 로그인 -->
+    <button onclick="naverLogin()" class="login-btn">
+        <img src="/images/naver_button.png" alt="네이버 로그인">
+    </button>
+
+</div>
+
 </body>
 </html>
